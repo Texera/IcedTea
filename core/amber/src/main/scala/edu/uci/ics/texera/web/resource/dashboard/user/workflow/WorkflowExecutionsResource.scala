@@ -115,21 +115,36 @@ class WorkflowExecutionsResource {
   @GET
   @Produces(Array(MediaType.APPLICATION_JSON))
   @Path("/{wid}/interactions/{eid}")
+  @RolesAllowed(Array("REGULAR", "ADMIN"))
   def retrieveInteractionHistory(
-      @PathParam("wid") wid: UInteger,
-      @PathParam("eid") eid: UInteger,
-  ): List[String] = {
-    val logLocation = WorkflowService.logLocations(eid.intValue())
-    val storage =
-      SequentialRecordStorage.getStorage[ReplayLogRecord](Some(logLocation))
-    val result = new mutable.ArrayBuffer[ChannelMarkerIdentity]()
-    storage.getReader("CONTROLLER").mkRecordIterator().foreach {
-      case destination: ReplayDestination =>
-        result.append(destination.id)
-      case _ =>
-    }
-    result.map(_.id).toList
-  }
+                                  @PathParam("wid") wid: UInteger,
+                                  @PathParam("eid") eid: UInteger,
+                                  @Auth sessionUser: SessionUser
+                                ): List[String] = {
+    val user = sessionUser.getUser
+    if (!WorkflowAccessResource.hasReadAccess(wid, user.getUid)) {
+      List()
+    } else {
+      ExecutionsMetadataPersistService.tryGetExistingExecution(
+        ExecutionIdentity(eid.longValue())
+      ) match {
+        case Some(value) =>
+          val logLocation = value.getLogLocation
+          if (logLocation != null && logLocation.nonEmpty) {
+            val storage =
+              SequentialRecordStorage.getStorage[ReplayLogRecord](Some(new URI(logLocation)))
+            val result = new mutable.ArrayBuffer[ChannelMarkerIdentity]()
+            storage.getReader("CONTROLLER").mkRecordIterator().foreach {
+              case destination: ReplayDestination =>
+                result.append(destination.id)
+              case _ =>
+            }
+            result.map(_.id).toList
+          } else {
+            List()
+          }
+        case None => List()
+      }
 
   /**
     * This method returns the executions of a workflow given by its ID
@@ -139,12 +154,41 @@ class WorkflowExecutionsResource {
   @GET
   @Produces(Array(MediaType.APPLICATION_JSON))
   @Path("/{wid}")
+  @RolesAllowed(Array("REGULAR", "ADMIN"))
   def retrieveExecutionsOfWorkflow(
-      @PathParam("wid") wid: UInteger,
-  ): List[WorkflowExecutionEntry] = {
-    WorkflowService.executions.get(wid.intValue()) match {
-      case Some(value) => value.map(i => WorkflowExecutionEntry(UInteger.valueOf(i), UInteger.valueOf(0),"",0,"",protobufTimestampToSqlTimestamp(WorkflowService.timstamps(i)),null,false, "", WorkflowService.logLocations(i).toString)).toList
-      case None => List()
+                                    @PathParam("wid") wid: UInteger,
+                                    @Auth sessionUser: SessionUser
+                                  ): List[WorkflowExecutionEntry] = {
+    val user = sessionUser.getUser
+    if (!WorkflowAccessResource.hasReadAccess(wid, user.getUid)) {
+      List()
+    } else {
+      context
+        .select(
+          WORKFLOW_EXECUTIONS.EID,
+          WORKFLOW_EXECUTIONS.VID,
+          field(
+            context
+              .select(USER.NAME)
+              .from(USER)
+              .where(WORKFLOW_EXECUTIONS.UID.eq(USER.UID))
+          ),
+          WORKFLOW_EXECUTIONS.STATUS,
+          WORKFLOW_EXECUTIONS.RESULT,
+          WORKFLOW_EXECUTIONS.STARTING_TIME,
+          WORKFLOW_EXECUTIONS.LAST_UPDATE_TIME,
+          WORKFLOW_EXECUTIONS.BOOKMARKED,
+          WORKFLOW_EXECUTIONS.NAME,
+          WORKFLOW_EXECUTIONS.LOG_LOCATION
+        )
+        .from(WORKFLOW_EXECUTIONS)
+        .join(WORKFLOW_VERSION)
+        .on(WORKFLOW_VERSION.VID.eq(WORKFLOW_EXECUTIONS.VID))
+        .where(WORKFLOW_VERSION.WID.eq(wid))
+        .fetchInto(classOf[WorkflowExecutionEntry])
+        .asScala
+        .toList
+        .reverse
     }
   }
 

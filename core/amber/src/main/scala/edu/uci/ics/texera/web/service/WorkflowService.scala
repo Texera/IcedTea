@@ -36,10 +36,6 @@ import scala.jdk.CollectionConverters.IterableHasAsScala
 object WorkflowService {
   private val workflowServiceMapping = new ConcurrentHashMap[String, WorkflowService]()
   val cleanUpDeadlineInSeconds: Int = AmberConfig.executionStateCleanUpInSecs
-  var inMemCount = 0
-  val logLocations = mutable.HashMap[Int, URI]()
-  val executions = mutable.HashMap[Int, mutable.ArrayBuffer[Int]]()
-  val timstamps = mutable.HashMap[Int, Timestamp]()
 
 
 
@@ -154,16 +150,13 @@ class WorkflowService(
     }
     val workflowContext: WorkflowContext = createWorkflowContext(uidOpt)
     var controllerConf = ControllerConfig.default
-    val intWid = workflowContext.workflowId.id.toInt
 
-    WorkflowService.inMemCount += 1
-    workflowContext.executionId = ExecutionIdentity(WorkflowService.inMemCount)
-    if (WorkflowService.executions.contains(intWid)) {
-      WorkflowService.executions(intWid).append(WorkflowService.inMemCount)
-    }else{
-      WorkflowService.executions(intWid) = ArrayBuffer[Int](inMemCount)
-    }
-    WorkflowService.timstamps(inMemCount) = Timestamp(Instant.now)
+    workflowContext.executionId = ExecutionsMetadataPersistService.insertNewExecution(
+      workflowContext.workflowId,
+      workflowContext.userId,
+      req.executionName,
+      convertToJson(req.engineVersion)
+    )
 
     if (AmberConfig.faultToleranceLogRootFolder.isDefined) {
       val writeLocation = AmberConfig.faultToleranceLogRootFolder.get.resolve(
@@ -174,29 +167,36 @@ class WorkflowService(
       )
     }
 
-    // enable only if we have mysql
-    val writeLocation = AmberConfig.faultToleranceLogRootFolder.get.resolve(
-      s"${workflowContext.workflowId}/${workflowContext.executionId}/"
-    )
-    if (AmberConfig.faultToleranceLogRootFolder.isDefined) {
-      controllerConf = controllerConf.copy(faultToleranceConfOpt =
-        Some(FaultToleranceConfig(writeTo = writeLocation))
+    if (AmberConfig.isUserSystemEnabled) {
+      // enable only if we have mysql
+      val writeLocation = AmberConfig.faultToleranceLogRootFolder.get.resolve(
+        s"${workflowContext.workflowId}/${workflowContext.executionId}/"
       )
-    }
-    WorkflowService.logLocations(WorkflowService.inMemCount) = writeLocation
-    if (req.replayFromExecution.isDefined) {
-      val replayInfo = req.replayFromExecution.get
-      val logLocation = WorkflowService.logLocations(replayInfo.eid.toInt)
-      val readLocation = logLocation
-      controllerConf = controllerConf.copy(stateRestoreConfOpt =
-          Some(
-            StateRestoreConfig(
-              readFrom = readLocation,
-              replayDestination = ChannelMarkerIdentity(replayInfo.interaction)
-            )
-          )
+      if (AmberConfig.faultToleranceLogRootFolder.isDefined) {
+        ExecutionsMetadataPersistService.tryUpdateExistingExecution(workflowContext.executionId) {
+          execution => execution.setLogLocation(writeLocation.toString)
+        }
+        controllerConf = controllerConf.copy(faultToleranceConfOpt =
+          Some(FaultToleranceConfig(writeTo = writeLocation))
         )
       }
+      if (req.replayFromExecution.isDefined) {
+        val replayInfo = req.replayFromExecution.get
+        ExecutionsMetadataPersistService
+          .tryGetExistingExecution(ExecutionIdentity(replayInfo.eid))
+          .foreach { execution =>
+            val readLocation = new URI(execution.getLogLocation)
+            controllerConf = controllerConf.copy(stateRestoreConfOpt =
+              Some(
+                StateRestoreConfig(
+                  readFrom = readLocation,
+                  replayDestination = ChannelMarkerIdentity(replayInfo.interaction)
+                )
+              )
+            )
+          }
+      }
+    }
 
     val executionStateStore = new ExecutionStateStore()
     // assign execution id to find the execution from DB in case the constructor fails.
