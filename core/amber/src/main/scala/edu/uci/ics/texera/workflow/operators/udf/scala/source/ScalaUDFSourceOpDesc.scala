@@ -30,7 +30,7 @@ class ScalaUDFSourceOpDesc extends SourceOperatorDescriptor {
       "//   }\n" +
       "// }")
   @JsonSchemaTitle("Scala script")
-  @JsonPropertyDescription("input your code here")
+  @JsonPropertyDescription("input your code here(hidden)")
   var code: String = _
 
   // Worker count to determine parallelism
