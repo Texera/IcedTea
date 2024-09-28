@@ -145,6 +145,8 @@ class WorkflowExecutionsResource {
           }
         case None => List()
       }
+    }
+  }
 
   /**
     * This method returns the executions of a workflow given by its ID

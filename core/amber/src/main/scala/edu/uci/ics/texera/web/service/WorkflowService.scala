@@ -11,7 +11,7 @@ import edu.uci.ics.amber.engine.common.virtualidentity.{ChannelMarkerIdentity, E
 import edu.uci.ics.amber.error.ErrorUtils.{getOperatorFromActorIdOpt, getStackTraceWithAllCauses}
 import edu.uci.ics.texera.web.model.websocket.event.TexeraWebSocketEvent
 import edu.uci.ics.texera.web.model.websocket.request.WorkflowExecuteRequest
-import edu.uci.ics.texera.web.service.WorkflowService.{inMemCount, mkWorkflowStateId}
+import edu.uci.ics.texera.web.service.WorkflowService.{mkWorkflowStateId}
 import edu.uci.ics.texera.web.storage.ExecutionStateStore.updateWorkflowState
 import edu.uci.ics.texera.web.storage.{ExecutionStateStore, WorkflowStateStore}
 import edu.uci.ics.texera.web.workflowruntimestate.FatalErrorType.EXECUTION_FAILURE
