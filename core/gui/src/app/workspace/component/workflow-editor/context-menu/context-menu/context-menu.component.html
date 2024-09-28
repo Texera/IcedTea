@@ -131,7 +131,7 @@
 
   <li
     nz-menu-item
-    *ngIf="operatorMenuService.effectivelyHighlightedOperators.value.length === 1  && !isWorkflowModifiable && downstreamsToIO.includes(operatorMenuService.effectivelyHighlightedOperators.value[0])"
+    *ngIf="operatorMenuService.effectivelyHighlightedOperators.value.length === 1  && !isWorkflowModifiable"
     (click)="onStepInto()">
     <span
       nz-icon
@@ -142,7 +142,7 @@
 
   <li
     nz-menu-item
-    *ngIf="operatorMenuService.effectivelyHighlightedOperators.value.length === 1  && !isWorkflowModifiable && downstreamsToIO.includes(operatorMenuService.effectivelyHighlightedOperators.value[0])"
+    *ngIf="operatorMenuService.effectivelyHighlightedOperators.value.length === 1  && !isWorkflowModifiable"
     (click)="onStepOver()">
     <span
       nz-icon
@@ -153,7 +153,7 @@
 
   <li
     nz-menu-item
-    *ngIf="operatorMenuService.effectivelyHighlightedOperators.value.length === 1  && !isWorkflowModifiable && downstreamsToIO.includes(operatorMenuService.effectivelyHighlightedOperators.value[0])"
+    *ngIf="operatorMenuService.effectivelyHighlightedOperators.value.length === 1  && !isWorkflowModifiable"
     (click)="onStepOut()">
     <span
       nz-icon

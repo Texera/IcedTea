@@ -191,8 +191,12 @@ export class ExecuteWorkflowService {
     replayExecutionInfo: ReplayExecutionInfo | undefined = undefined,
     periodicalInteraction?: number
   ): void {
+    let ename = executionName
+    if(replayExecutionInfo !== undefined){
+      ename = "replay-execution"
+    }
     const workflowExecuteRequest = {
-      executionName: executionName,
+      executionName: ename,
       engineVersion: version.hash,
       logicalPlan: logicalPlan,
       replayFromExecution: replayExecutionInfo,

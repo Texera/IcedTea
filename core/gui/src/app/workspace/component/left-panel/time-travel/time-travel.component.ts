@@ -80,6 +80,9 @@ export class TimeTravelComponent implements OnInit, OnDestroy {
     return this.workflowExecutionsService.retrieveWorkflowExecutions(wid).pipe(
       map(executionList =>
         executionList.filter(execution => {
+          if(execution.name.startsWith("replay")){
+            return false;
+          }
           return execution.logLocation ? execution.logLocation.length > 0 : false;
         })
       )
