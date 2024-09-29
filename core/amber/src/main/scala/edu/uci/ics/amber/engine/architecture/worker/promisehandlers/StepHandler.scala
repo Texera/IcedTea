@@ -20,6 +20,7 @@ trait StepHandler {
     dp.inputGateway.getAllChannels.foreach(c => c.enable(true))
     if(msg.stepSize.isEmpty){
       dp.pauseManager.resume(DebuggerPause)
+      logger.info(s"current Status:${dp.inputManager.hasUnfinishedInput || dp.outputManager.hasUnfinishedOutput || dp.pauseManager.isPaused}")
     }else{
       if (dp.executor.isInstanceOf[SourceOperatorExecutor]){
         val logManager = new EmptyReplayLogManagerImpl(dp.outputHandler)

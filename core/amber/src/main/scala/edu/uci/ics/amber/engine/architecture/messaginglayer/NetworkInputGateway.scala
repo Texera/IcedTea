@@ -36,8 +36,6 @@ class NetworkInputGateway(val actorId: ActorVirtualIdentity)
                   return (Some(channel),true)
                 case WorkflowFIFOMessage(_, _, ControlInvocation(_, QueryStatistics())) =>
                   return (Some(channel), true)
-                case WorkflowFIFOMessage(_,_, ReturnInvocation(_,_)) =>
-                  return (Some(channel), true)
                 case other =>
                   //do nothing
               }
