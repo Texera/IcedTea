@@ -6,7 +6,7 @@ import edu.uci.ics.amber.engine.architecture.worker.promisehandlers.QueryStatist
 import edu.uci.ics.amber.engine.architecture.worker.promisehandlers.StepHandler.{ContinueProcessing, StopProcessing}
 import edu.uci.ics.amber.engine.common.AmberLogging
 import edu.uci.ics.amber.engine.common.ambermessage.{ChannelMarkerPayload, WorkflowFIFOMessage}
-import edu.uci.ics.amber.engine.common.rpc.AsyncRPCClient.ControlInvocation
+import edu.uci.ics.amber.engine.common.rpc.AsyncRPCClient.{ControlInvocation, ReturnInvocation}
 import edu.uci.ics.amber.engine.common.virtualidentity.{ActorVirtualIdentity, ChannelIdentity}
 
 import scala.collection.mutable
@@ -35,6 +35,8 @@ class NetworkInputGateway(val actorId: ActorVirtualIdentity)
                 case WorkflowFIFOMessage(_, _, ControlInvocation(_, StopProcessing())) =>
                   return (Some(channel),true)
                 case WorkflowFIFOMessage(_, _, ControlInvocation(_, QueryStatistics())) =>
+                  return (Some(channel), true)
+                case WorkflowFIFOMessage(_,_, ReturnInvocation(_,_)) =>
                   return (Some(channel), true)
                 case other =>
                   //do nothing

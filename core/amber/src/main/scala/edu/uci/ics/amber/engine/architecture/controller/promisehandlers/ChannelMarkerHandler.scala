@@ -36,7 +36,6 @@ trait ChannelMarkerHandler {
         cp.workflowExecution.getRunningRegionExecutions
           .map(_.getOperatorExecution(target))
           .flatMap(_.getWorkerIds.map { worker =>
-            logger.info(s"adding $worker")
             worker -> createInvocation(msg.markerCommand)
           })
       }
