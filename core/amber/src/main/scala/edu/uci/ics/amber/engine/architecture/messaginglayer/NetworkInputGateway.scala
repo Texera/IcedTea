@@ -72,7 +72,7 @@ class NetworkInputGateway(val actorId: ActorVirtualIdentity)
                   //do nothing
                 }
               case None =>
-              logger.info(s"peek failed for ${channel.channelId}")// do nothing
+//              logger.info(s"peek failed for ${channel.channelId}")// do nothing
             }
             val ret = !cid.isControl && channel.isEnabled && channel.hasMessage && enforcers
               .forall(enforcer => enforcer.canProceed(cid) || enforcer.isCompleted)
@@ -81,13 +81,13 @@ class NetworkInputGateway(val actorId: ActorVirtualIdentity)
         .map(_._2)
     }
     enforcers.filter(enforcer => enforcer.isCompleted).foreach(enforcer => enforcers -= enforcer)
-    if (ret.isEmpty) {
-      if(enforcers.nonEmpty){
-        logger.info(s"enforcer blocked on ${enforcers.headOption.foreach(_.asInstanceOf[ReplayOrderEnforcer].currentChannelId)}")
-      }
-      val a = inputChannels.map(c => s"${c._1} -> ${c._2.isEnabled && c._2.hasMessage && !c._2.channelId.isControl}").mkString("\n")
-      logger.info(s"channel status:\n ${a}")
-    }
+//    if (ret.isEmpty) {
+//      if(enforcers.nonEmpty){
+//        logger.info(s"enforcer blocked on ${enforcers.headOption.foreach(_.asInstanceOf[ReplayOrderEnforcer].currentChannelId)}")
+//      }
+//      val a = inputChannels.map(c => s"${c._1} -> ${c._2.isEnabled && c._2.hasMessage && !c._2.channelId.isControl}").mkString("\n")
+//      logger.info(s"channel status:\n ${a}")
+//    }
    (ret, disableFT)
   }
 

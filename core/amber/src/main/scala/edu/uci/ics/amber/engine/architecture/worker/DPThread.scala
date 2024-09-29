@@ -112,7 +112,7 @@ class DPThread(
           case WorkflowWorker.FIFOMessageElement(msg) =>
             val channel = dp.inputGateway.getChannel(msg.channelId)
             channel.acceptMessage(msg)
-            logger.info(s"queued $msg")
+//            logger.info(s"queued $msg")
           case WorkflowWorker.TimerBasedControlElement(control) =>
             // establish order according to receiving order.
             // Note: this will not guarantee fifo & exactly-once
@@ -145,16 +145,16 @@ class DPThread(
         disableFT = ft
         channelOpt match {
           case Some(channel) =>
-            logger.info(s"picked ${channel.channelId}")
+//            logger.info(s"picked ${channel.channelId}")
             channelId = channel.channelId
             msgOpt = Some(channel.take)
           case None =>
             // continue processing
             if (!dp.pauseManager.isPaused && !backpressureStatus) {
-              logger.info("continue processing")
+//              logger.info("continue processing")
               channelId = dp.inputManager.currentChannelId
             } else {
-              logger.info("start waiting")
+//              logger.info("start waiting")
               waitingForInput = true
             }
         }
