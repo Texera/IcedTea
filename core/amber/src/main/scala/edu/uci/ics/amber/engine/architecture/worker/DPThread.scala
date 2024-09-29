@@ -145,7 +145,7 @@ class DPThread(
         disableFT = ft
         channelOpt match {
           case Some(channel) =>
-            logger.info("picked $channelId")
+            logger.info(s"picked $channelId")
             channelId = channel.channelId
             msgOpt = Some(channel.take)
           case None =>

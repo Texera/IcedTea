@@ -1,7 +1,7 @@
 package edu.uci.ics.amber.engine.architecture.messaginglayer
 
 import edu.uci.ics.amber.engine.architecture.controller.promisehandlers.BroadcastMessageHandler.BroadcastMessage
-import edu.uci.ics.amber.engine.architecture.logreplay.OrderEnforcer
+import edu.uci.ics.amber.engine.architecture.logreplay.{OrderEnforcer, ReplayOrderEnforcer}
 import edu.uci.ics.amber.engine.architecture.worker.promisehandlers.QueryStatisticsHandler.QueryStatistics
 import edu.uci.ics.amber.engine.architecture.worker.promisehandlers.StepHandler.{ContinueProcessing, StopProcessing}
 import edu.uci.ics.amber.engine.common.AmberLogging
@@ -73,12 +73,16 @@ class NetworkInputGateway(val actorId: ActorVirtualIdentity)
                 }
               case None => // do nothing
             }
-            !cid.isControl && channel.isEnabled && channel.hasMessage && enforcers
+            val ret = !cid.isControl && channel.isEnabled && channel.hasMessage && enforcers
               .forall(enforcer => enforcer.isCompleted || enforcer.canProceed(cid))
+            ret
         })
         .map(_._2)
     }
     enforcers.filter(enforcer => enforcer.isCompleted).foreach(enforcer => enforcers -= enforcer)
+    if (ret.isEmpty) {
+      logger.info(s"enforcer blocked on ${enforcers.headOption.foreach(_.asInstanceOf[ReplayOrderEnforcer].currentChannelId)}")
+    }
    (ret, disableFT)
   }
 

@@ -11,7 +11,7 @@ class ReplayOrderEnforcer(
     startStep: Long,
     private var onComplete: () => Unit
 ) extends OrderEnforcer {
-  private var currentChannelId: ChannelIdentity = _
+  var currentChannelId: ChannelIdentity = _
 
   private def triggerOnComplete(): Unit = {
     if (!isCompleted) {
