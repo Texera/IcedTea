@@ -33,9 +33,10 @@ trait ChannelMarkerHandler {
     {
       // step1: create separate control commands for each target actor.
       val inputSet = msg.targetOps.flatMap { target =>
-        cp.workflowExecution.getAllRegionExecutions
+        cp.workflowExecution.getRunningRegionExecutions
           .map(_.getOperatorExecution(target))
           .flatMap(_.getWorkerIds.map { worker =>
+            logger.info(s"adding $worker")
             worker -> createInvocation(msg.markerCommand)
           })
       }
