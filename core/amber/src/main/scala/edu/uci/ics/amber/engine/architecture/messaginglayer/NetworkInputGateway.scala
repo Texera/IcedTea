@@ -81,7 +81,11 @@ class NetworkInputGateway(val actorId: ActorVirtualIdentity)
     }
     enforcers.filter(enforcer => enforcer.isCompleted).foreach(enforcer => enforcers -= enforcer)
     if (ret.isEmpty) {
-      logger.info(s"enforcer blocked on ${enforcers.headOption.foreach(_.asInstanceOf[ReplayOrderEnforcer].currentChannelId)}")
+      if(enforcers.nonEmpty){
+        logger.info(s"enforcer blocked on ${enforcers.headOption.foreach(_.asInstanceOf[ReplayOrderEnforcer].currentChannelId)}")
+      }
+      val a = inputChannels.map(c => s"${c._1} -> ${c._2.isEnabled}").mkString("\n")
+      logger.info(s"channel status:\n ${a}")
     }
    (ret, disableFT)
   }
