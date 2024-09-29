@@ -38,9 +38,7 @@ trait TakeGlobalCheckpointHandler {
     val physicalOpIdsToTakeCheckpoint = cp.workflowScheduler.physicalPlan.operators.map(_.id)
     execute(
       PropagateChannelMarker(
-        cp.workflowExecution.getAllRegionExecutions
-          .flatMap(_.getAllOperatorExecutions.map(_._1))
-          .toSet,
+        cp.workflowScheduler.physicalPlan.getSourceOperatorIds,
         msg.checkpointId,
         NoAlignment,
         cp.workflowScheduler.physicalPlan,
