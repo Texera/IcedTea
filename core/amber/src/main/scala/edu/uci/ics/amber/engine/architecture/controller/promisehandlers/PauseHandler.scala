@@ -46,7 +46,7 @@ trait PauseHandler {
           PauseWorker()
         ),
         sender
-      ).flatMap { ret =>
+      ).map { ret =>
         execute(ControllerInitiateQueryStatistics(), CONTROLLER)
       }.map{
         ret =>

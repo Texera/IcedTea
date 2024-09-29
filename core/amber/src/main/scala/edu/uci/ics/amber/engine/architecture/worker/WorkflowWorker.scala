@@ -150,8 +150,14 @@ class WorkflowWorker(
     logger.info("re-initialize executor done.")
     dp.outputManager.outputIterator.setTupleOutput(iter)
     logger.info("set tuple output done.")
-    queuedMessages.foreach(msg => inputQueue.put(FIFOMessageElement(msg)))
-    inflightMessages.foreach(msg => inputQueue.put(FIFOMessageElement(msg)))
+    queuedMessages.foreach(msg => {
+      logger.info(s"putting $msg")
+      inputQueue.put(FIFOMessageElement(msg))
+    })
+    inflightMessages.foreach(msg => {
+      logger.info(s"putting $msg")
+      inputQueue.put(FIFOMessageElement(msg))
+    })
     outputMessages.foreach(transferService.send)
     logger.info("restored all messages done.")
   }
